@@ -1,0 +1,133 @@
+#REF.yaml - File to contain paths to static reference files that Chips requires
+#           for its analysis.
+# NOTE: these are already pre-filled for hg19 and mm9 (if you use the publicly
+#       available files found here: <link to chips static references)
+# NOTE: organized by assemblies
+# 
+# !VERY IMPORTANT: you can OVERRIDE any of these values in config.yaml!
+
+hg38:
+  bwa_index: ./ref_files/hg38/bwa_indices/hg38/hg38.fa
+  bwt2_index: ./ref_files/hg38/bowtie/indexes/hg38
+
+  geneTable: ./ref_files/hg38/hg38.refGene
+  conservation: ./ref_files/hg38/conservation/hg38
+
+  DHS: ./ref_files/hg38/regions/DHS_hg38.bed
+  exons: ./ref_files/hg38/regions/exon.bed
+  promoters: ./ref_files/hg38/regions/promoter.bed
+  velcro_regions: 
+
+  chrom_lens: ./ref_files/hg38/regions/chromInfo_hg38.txt
+
+  #MACS2 genome_size param: hs = 2.7e9, mm = 1.87e9, ce = 9e7, dm = 1.2e8
+  genome_size: "2.7e9"
+
+  #LEN: SHOULD MAYBE change to motif_genome
+  motif_path: hg38
+
+hg19:
+  bwa_index: ./ref_files/hg19/bwa_indices/hg19/hg19.fa
+  bwt2_index: ./ref_files/hg19/bowtie/indexes/hg19
+
+  geneTable: ./ref_files/hg19/hg19.refGene
+  conservation: ./ref_files/hg19/conservation/hg19/vertebrate
+
+  DHS: ./ref_files/hg19/regions/DHS_hg19.bed
+  exons: ./ref_files/hg19/regions/exon.bed
+  promoters: ./ref_files/hg19/regions/promoter.bed
+  velcro_regions: ./ref_files/hg19/regions/wgEncodeHg19ConsensusSignalArtifactRegions.bed
+
+  chrom_lens: ./ref_files/hg19/regions/hg19.len
+
+  #MACS2 genome_size param: hs = 2.7e9, mm = 1.87e9, ce = 9e7, dm = 1.2e8
+  genome_size: "2.7e9"
+
+  #LEN: SHOULD MAYBE change to motif_genome
+  motif_path: hg19
+
+mm10:
+  bwa_index: ./ref_files/mm10/bwa_indices/mm10.fa
+  bwt2_index: ./ref_files/mm10/bowtie/mm10
+
+  geneTable: ./ref_files/mm10/mm10.refGene
+  conservation: ./ref_files/mm10/conservation/vertebrate
+
+  DHS: 
+  exons: ./ref_files/mm10/regions/mm10.exon.bed
+  promoters: ./ref_files/mm10/regions/mm10.promoter.bed
+  velcro_regions: 
+
+  chrom_lens: ./ref_files/mm10/regions/mm10.len
+
+  #MACS2 genome_size param: hs = 2.7e9, mm = 1.87e9, ce = 9e7, dm = 1.2e8
+  genome_size: "1.87e9"
+
+  #LEN: SHOULD MAYBE change to motif_genome
+  motif_path: mm10
+
+mm9:
+  bwa_index: ./ref_files/mm9/bwa_indices/mm9/mm9.fa
+  bwt2_index: ./ref_files/mm9/bowtie/indexes/mm9
+
+  geneTable: ./ref_files/mm9/mm9.refGene
+  conservation: ./ref_files/mm9/conservation/mm9/vertebrate
+
+  DHS: ./ref_files/mm9/regions/DHS_mm9.bed
+  exons: ./ref_files/mm9/regions/mm9_exon.bed
+  promoters: ./ref_files/mm9/regions/mm9_promoter.bed
+  velcro_regions: 
+
+  chrom_lens: ./ref_files/mm9/regions/mm9.len
+
+  #MACS2 genome_size param: hs = 2.7e9, mm = 1.87e9, ce = 9e7, dm = 1.2e8
+  genome_size: "1.87e9"
+
+  #LEN: SHOULD MAYBE change to motif_genome
+  motif_path: mm9
+
+rn5:
+  bwa_index: ./ref_files/rn5/bwa_indices/rn5/rn5.fa
+  bwt2_index: ./ref_files/rn5/bowtie/indexes/rn5
+
+  geneTable: ./ref_files/rn5/rn5.refGene
+  conservation: ./ref_files/rn5/conservation/rn5/vertebrate
+
+  DHS: 
+  exons: ./ref_files/rn5/regions/exon.bed
+  promoters: ./ref_files/rn5/regions/promoter.bed
+  velcro_regions: 
+
+  chrom_lens: ./ref_files/rn5/regions/rn5.len
+
+  #MACS2 genome_size param: hs = 2.7e9, mm = 1.87e9, ce = 9e7, dm = 1.2e8
+  #NOTE: as this value is not provided by MACS2, we are using the Ungapped 
+  #Length found here:
+  #https://www.ncbi.nlm.nih.gov/assembly/GCF_000001895.4/#/st
+  genome_size: "2.57e9"
+
+  #LEN: SHOULD MAYBE change to motif_genome
+  motif_path: rn5
+
+rn6:
+  bwa_index: ./ref_files/rn6/bwa_indices/rn6/rn6.fa
+  bwt2_index: ./ref_files/rn6/bowtie/indexes/rn6
+
+  geneTable: ./ref_files/rn6/rn6.refGene
+  conservation: ./ref_files/rn6/conservation/rn6/vertebrate
+
+  DHS: 
+  exons: ./ref_files/rn6/regions/exon.bed
+  promoters: ./ref_files/rn6/regions/promoter.bed
+  velcro_regions: 
+
+  chrom_lens: ./ref_files/rn6/regions/rn6.len
+
+  #MACS2 genome_size param: hs = 2.7e9, mm = 1.87e9, ce = 9e7, dm = 1.2e8
+  #NOTE: as this value is not provided by MACS2, we are using the Ungapped 
+  #Length found here:
+  #https://www.ncbi.nlm.nih.gov/assembly/GCF_000001895.4/#/st
+  genome_size: "2.57e9"
+
+  #LEN: SHOULD MAYBE change to motif_genome
+  motif_path: rn6
