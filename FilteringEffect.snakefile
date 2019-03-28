@@ -132,6 +132,7 @@ def all_targets(wildcards):
             ls.append("analysis/%s/motif/%s.%s/results" % (sample,sample,cutoff))
             ls.append("analysis/%s/motif/%s.%s/results/homerResults.html" % (sample,sample,cutoff))
             ls.append("analysis/%s/conservation/%s.%s/%s.%s_conserv.png" % (sample,sample,cutoff,sample,cutoff))
+            ls.append("analysis/%s/DHS/%s.%s/%s.%s_DHS_stats.txt" % (sample,sample,cutoff,sample,cutoff))
         # ls.append("" % (sample,sample))
         # ls.append("" % (sample,sample))
         # ls.append("" % (sample,sample))
@@ -172,6 +173,10 @@ rule target_all:
     input:
         all_targets
 
+#################################################################
+########################======align======########################
+#################################################################
+
 rule align:
     input:
         getFastq
@@ -200,6 +205,10 @@ rule sortBams:
     shell:
         "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
 
+#################################################################
+####################======distribution======#####################
+#################################################################
+
 rule get_fragments_length:
     input:
         "analysis/{sample}/align/{sample}.sorted.bam",
@@ -220,6 +229,10 @@ rule plot_fragments_density:
     log: _logfile
     shell:
         "Rscript ./FilterWorkFlow/scripts/density.r {input} {output}"
+
+#################################################################
+#######################======filter======########################
+#################################################################
 
 rule filter_bam_files_cutoff_50:
     input:
@@ -276,6 +289,10 @@ rule mv_raw_sorted_bam:
     log: _logfile
     shell:
         "ln -s {params.abspath} {output}"
+
+#################################################################
+########################======peaks======########################
+#################################################################
 
 rule peaks_calling:
     input:
@@ -353,6 +370,10 @@ rule fold_20_peaks:
     shell:
         "awk '$7 > 20' {input} > {output}"
 
+#################################################################
+########################======motif======########################
+#################################################################
+
 rule find_motif:
     input:
         bed="analysis/{sample}/peaks/{filename}/{filename}_sorted_5k_summits.bed"
@@ -379,6 +400,10 @@ rule find_motif:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html)
 
+#################################################################
+####################======conservation======#####################
+#################################################################
+
 rule conservation:
     """generate conservation plots"""
     input:
@@ -400,8 +425,35 @@ rule conservation:
         "{params.pypath} {config[python2]} ./FilterWorkFlow/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conservation/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 
 
+#################################################################
+#########################======DHS======#########################
+#################################################################
 
+rule DHS_intersectDHS:
+    """Intersect PEAKS with DHS regions"""
+    input:
+        'analysis/{sample}/peaks/{filename}/{filename}_peaks.bed'
+    output:
+        'analysis/{sample}/DHS/{filename}/{filename}_DHS_peaks.bed'
+    params:
+        #check for config['DHS'] defined, otherwise, use null
+        dhs=config['DHS'] if config['DHS'] else "/dev/null"
+    message: "DHS: intersect PEAKS with DHS regions"
+    log: _logfile
+    shell:
+        "intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}"
 
+rule DHS_stat:
+    """collect DHS stats"""
+    input:
+        n='analysis/{sample}/peaks/{filename}/{filename}_peaks.bed',
+        dhs='analysis/{sample}/DHS/{filename}/{filename}_DHS_peaks.bed'
+    output:
+        'analysis/{sample}/DHS/{filename}/{filename}_DHS_stats.txt'
+    message: "DHS: collecting stats"
+    log: _logfile
+    shell:
+        "wc -l {input.n} {input.dhs} > {output} 2>>{log}"
 
 
 
