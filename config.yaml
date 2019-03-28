@@ -1,6 +1,6 @@
 #NOTE: you won't typically have to change the following two lines!
 metasheet: 'metasheet.csv'
-ref: "cidc_chips/ref.yaml"
+ref: "./ref.yaml"
 
 #Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
 assembly: hg38
@@ -65,9 +65,10 @@ cnv_analysis: true
 # ALSO: having the string "rep" or '.' in your sample name will throw an ERROR
 # '.' causes Rscripts chop off names; and it's used as replicate splitter
 samples:
-  SAMPLE1:
-    - data/sample1.fastq.gz
-  SAMPLE1_input:
-    - data/sample1.input.fastq.gz
-  SAMPLE2:
-    - data/sample2.fastq.gz
+  GSM1155957:
+    - data/GSM1155957_R1.fastq
+    - data/GSM1155957_R2.fastq
+  GSM1155958:
+    - data/GSM1155958_R1.fastq
+    - data/GSM1155958_R2.fastq
+
