@@ -5,7 +5,7 @@ import sys
 import subprocess
 import pandas as pd
 import yaml
-
+import math
 from string import Template
 
 # def getRuns(config):
@@ -168,6 +168,11 @@ _logfile = "analysis/logfile.log"
 _macs_fdr="0.01"
 _macs_keepdup="1"
 _macs_extsize="146"
+#_numPngs is used in conservation_plot rule to see how many pngs to expect
+#note: the rule plots 3 runs per png, so for example, 12 runs results in 4 pngs
+_nPerPlot = 3
+_numPngs = math.ceil(len(config['samples'].keys())/float(_nPerPlot))
+_nPngs = [n+1 for n in range(_numPngs)]
 
 rule target_all:
     input:
@@ -422,7 +427,7 @@ rule conservation:
     message: "CONSERVATION: calling conservation script"
     log: _logfile
     shell:
-        "{params.pypath} {config[python2]} ./FilterWorkFlow/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/{sample}/conservation/{filename}/{filename}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
+        "{params.pypath} {config[python2]} ./FilterWorkFlow/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/{wildcards.sample}/conservation/{wildcards.filename}/{wildcards.filename}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 
 
 #################################################################
