@@ -14,7 +14,7 @@ aligner: 'bwa'
 #Change the number to set the cutoff
 #
 #To skip filtering, set cutoff 0 or leave it as blank
-cutoff: 0
+# cutoff: 0
 
 #MOTIF CALLER: if you want to use MDSeqPos, set your aligner as 'mdseqpos'
 #OTHERWISE leave it as 'homer' (default)
@@ -47,7 +47,7 @@ contamination_panel:
   # - ./ref_files/contam_panel/mycoplasma/GCF_000969765.1_ASM96976v1/myco_WVU1853.fna
 
 #NOTE: CNV analysis using QDNAseq R pkg- {true, false}
-cnv_analysis: true
+# cnv_analysis: true
 
 #Uncomment and set to 'SNAP', 'CAP', or 'KACYL' for your type of epicypher
 #spike-ins
