@@ -71,4 +71,13 @@ samples:
   GSM1155958:
     - data/GSM1155958_R1.fastq
     - data/GSM1155958_R2.fastq
+  GSM1155961:
+    - data/GSM1155961_R1.fastq
+    - data/GSM1155961_R2.fastq
+  GSM1904729:
+    - data/GSM1904729_R1.fastq
+    - data/GSM1904729_R2.fastq
+
+
+
 

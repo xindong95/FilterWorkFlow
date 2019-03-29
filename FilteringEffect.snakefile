@@ -417,12 +417,12 @@ rule conservation:
         db=config['conservation'],
         width=4000,
         #run = lambda wildcards: wildcards.run,
-        run="{filename}" ,
+        # run="{filename}",
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     message: "CONSERVATION: calling conservation script"
     log: _logfile
     shell:
-        "{params.pypath} {config[python2]} ./FilterWorkFlow/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conservation/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
+        "{params.pypath} {config[python2]} ./FilterWorkFlow/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/{sample}/conservation/{filename}/{filename}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 
 
 #################################################################
