@@ -101,6 +101,13 @@ def _getRepInput(temp, suffix=""):
     #print(ls)
     return ls
 
+def _getCutoffList(exper_type):
+    if config['exper_type'] == 'ChIP-seq':
+        cutoff_list = ['raw','sub50','sub100','sub150','sub200','sub250','sub300','sub350','sub400']
+    else:
+        cutoff_list = ['raw','sub50','sub100','sub150','sub200']
+    return cutoff_list
+
 #------------------------------------------------------------------------------
 # TARGETS
 #------------------------------------------------------------------------------
@@ -110,36 +117,33 @@ def all_targets(wildcards):
     ls = []
     for sample in config['samples']:
         ls.append("analysis/%s/align/%s.sorted.bam" % (sample,sample))
-        ls.append("analysis/%s/distribution/fragment_files/%s_fragment.txt" % (sample,sample))
-        ls.append("analysis/%s/distribution/plots/%s_distribution.png" % (sample,sample))
+        ls.append("analysis/%s/distribution/%s_fragment.txt" % (sample,sample))
+        ls.append("analysis/%s/distribution/%s_distribution.png" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub50.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub100.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub150.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub200.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.raw.sorted.bam" % (sample,sample))
-        for cutoff in ['raw','sub50','sub100','sub150','sub200']:
+        for cutoff in _getCutoffList(config['exper_type']):
             ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.narrowPeak" % (sample,sample,cutoff,sample,cutoff))
             ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.bed" % (sample,sample,cutoff,sample,cutoff))
             ls.append("analysis/%s/peaks/%s.%s/%s.%s_summits.bed" % (sample,sample,cutoff,sample,cutoff))
             ls.append("analysis/%s/peaks/%s.%s/%s.%s_sorted_summits.bed" % (sample,sample,cutoff,sample,cutoff))
             ls.append("analysis/%s/peaks/%s.%s/%s.%s_sorted_5k_summits.bed" % (sample,sample,cutoff,sample,cutoff))
             ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.xls" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.bdg" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.bdg" % (sample,sample,cutoff,sample,cutoff))
+            # ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.bdg" % (sample,sample,cutoff,sample,cutoff))
+            # ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.bdg" % (sample,sample,cutoff,sample,cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.sorted.bdg.gz" % (sample,sample,cutoff,sample,cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.sorted.bdg.gz" % (sample,sample,cutoff,sample,cutoff))
             ls.append("analysis/%s/peaks/10FoldChange/%s.%s_peaks.narrowPeak" % (sample,sample,cutoff))
             ls.append("analysis/%s/peaks/20FoldChange/%s.%s_peaks.narrowPeak" % (sample,sample,cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.bw" % (sample,sample,cutoff,sample,cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.bw" % (sample,sample,cutoff,sample,cutoff))
             ls.append("analysis/%s/motif/%s.%s/" % (sample,sample,cutoff))
             ls.append("analysis/%s/motif/%s.%s/results" % (sample,sample,cutoff))
             ls.append("analysis/%s/motif/%s.%s/results/homerResults.html" % (sample,sample,cutoff))
             ls.append("analysis/%s/conservation/%s.%s/%s.%s_conserv.png" % (sample,sample,cutoff,sample,cutoff))
             ls.append("analysis/%s/DHS/%s.%s/%s.%s_DHS_stats.txt" % (sample,sample,cutoff,sample,cutoff))
-        # ls.append("" % (sample,sample))
-        # ls.append("" % (sample,sample))
-        # ls.append("" % (sample,sample))
-        # ls.append("" % (sample,sample))
-        # ls.append("" % (sample,sample))
-        # ls.append("" % (sample,sample))
-        # ls.append("" % (sample,sample))
     return ls
 
 # include:
@@ -173,6 +177,7 @@ _macs_extsize="146"
 _nPerPlot = 3
 _numPngs = math.ceil(len(config['samples'].keys())/float(_nPerPlot))
 _nPngs = [n+1 for n in range(_numPngs)]
+_minPeaks = 500
 
 rule target_all:
     input:
@@ -218,7 +223,7 @@ rule get_fragments_length:
     input:
         "analysis/{sample}/align/{sample}.sorted.bam",
     output:
-        "analysis/{sample}/distribution/fragment_files/{sample}_fragment.txt"
+        "analysis/{sample}/distribution/{sample}_fragment.txt"
     message: "DISTRIBUTION: get frgament length"
     log: _logfile
     threads: _threads
@@ -227,9 +232,9 @@ rule get_fragments_length:
 
 rule plot_fragments_density:
     input:
-        "analysis/{sample}/distribution/fragment_files/{sample}_fragment.txt"
+        "analysis/{sample}/distribution/{sample}_fragment.txt"
     output:
-        "analysis/{sample}/distribution/plots/{sample}_distribution.png"
+        "analysis/{sample}/distribution/{sample}_distribution.png"
     message: "DISTRIBUTION: get frgament length"
     log: _logfile
     shell:
@@ -283,6 +288,50 @@ rule filter_bam_files_cutoff_200:
     shell:
         "samtools view -h -@ {threads} {input} | awk '($9 <= 200 && $9 >= -200) || $1 ~ /^@/' | samtools view -bS -@ {threads} - > {output}"
 
+rule filter_bam_files_cutoff_250:
+    input:
+        "analysis/{sample}/align/{sample}.sorted.bam"
+    output:
+        "analysis/{sample}/filtered/{sample}.sub250.sorted.bam"
+    message: "FILTERING: cutoff = 250"
+    threads: _threads
+    log: _logfile
+    shell:
+        "samtools view -h -@ {threads} {input} | awk '($9 <= 250 && $9 >= -250) || $1 ~ /^@/' | samtools view -bS -@ {threads} - > {output}"
+
+rule filter_bam_files_cutoff_300:
+    input:
+        "analysis/{sample}/align/{sample}.sorted.bam"
+    output:
+        "analysis/{sample}/filtered/{sample}.sub300.sorted.bam"
+    message: "FILTERING: cutoff = 300"
+    threads: _threads
+    log: _logfile
+    shell:
+        "samtools view -h -@ {threads} {input} | awk '($9 <= 300 && $9 >= -300) || $1 ~ /^@/' | samtools view -bS -@ {threads} - > {output}"
+
+rule filter_bam_files_cutoff_350:
+    input:
+        "analysis/{sample}/align/{sample}.sorted.bam"
+    output:
+        "analysis/{sample}/filtered/{sample}.sub350.sorted.bam"
+    message: "FILTERING: cutoff = 350"
+    threads: _threads
+    log: _logfile
+    shell:
+        "samtools view -h -@ {threads} {input} | awk '($9 <= 350 && $9 >= -350) || $1 ~ /^@/' | samtools view -bS -@ {threads} - > {output}"
+
+rule filter_bam_files_cutoff_400:
+    input:
+        "analysis/{sample}/align/{sample}.sorted.bam"
+    output:
+        "analysis/{sample}/filtered/{sample}.sub400.sorted.bam"
+    message: "FILTERING: cutoff = 400"
+    threads: _threads
+    log: _logfile
+    shell:
+        "samtools view -h -@ {threads} {input} | awk '($9 <= 400 && $9 >= -400) || $1 ~ /^@/' | samtools view -bS -@ {threads} - > {output}"
+
 rule mv_raw_sorted_bam:
     input:
         "analysis/{sample}/align/{sample}.sorted.bam"
@@ -306,8 +355,8 @@ rule peaks_calling:
         "analysis/{sample}/peaks/{filename}/{filename}_peaks.narrowPeak",
         "analysis/{sample}/peaks/{filename}/{filename}_summits.bed",
         "analysis/{sample}/peaks/{filename}/{filename}_peaks.xls",
-        "analysis/{sample}/peaks/{filename}/{filename}_treat_pileup.bdg",
-        "analysis/{sample}/peaks/{filename}/{filename}_control_lambda.bdg",
+        temp("analysis/{sample}/peaks/{filename}/{filename}_treat_pileup.bdg"),
+        temp("analysis/{sample}/peaks/{filename}/{filename}_control_lambda.bdg"),
     params:
         fdr=_macs_fdr,
         keepdup=_macs_keepdup,
@@ -374,6 +423,51 @@ rule fold_20_peaks:
     log:_logfile
     shell:
         "awk '$7 > 20' {input} > {output}"
+
+rule sortBedgraphs:
+    """Sort bed graphs--typically useful for converting bdg to bw"""
+    input:
+        "analysis/{sample}/peaks/{filename}/{filename}_{suffix}.bdg"
+    output:
+        "analysis/{sample}/peaks/{filename}/{filename}_{suffix}.sorted.bdg"
+    params:
+        #msg just for message below
+        msg= lambda wildcards: "%s_%s" % (wildcards.filename, wildcards.suffix)
+    message: "PEAKS: sorting bdg pileups {params.msg}"
+    log:_logfile
+    shell:
+        "bedSort {input} {output} 2>>{log}"
+
+rule bdgToBw:
+    """Convert bedGraphs to BigWig"""
+    input:
+        "analysis/{sample}/peaks/{filename}/{filename}_{suffix}.sorted.bdg"
+    output:
+        "analysis/{sample}/peaks/{filename}/{filename}_{suffix}.bw"
+    params:
+        chroms=config['chrom_lens'],
+        #msg just for message below
+        msg= lambda wildcards: "%s_%s" % (wildcards.filename, wildcards.suffix)
+    message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
+    log:_logfile
+    shell:
+        "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"
+
+rule gzip_bdg:
+    """Space saving rule to compress the bdg output"""
+    input:
+        bdg="analysis/{sample}/peaks/{filename}/{filename}_{suffix}.sorted.bdg",
+        #NOTE: the .bw is NOT used, but it helps ensure rule bdgToBw runs first
+        bw="analysis/{sample}/peaks/{filename}/{filename}_{suffix}.bw"
+    output:
+        "analysis/{sample}/peaks/{filename}/{filename}_{suffix}.sorted.bdg.gz"
+    params:
+        #msg just for message below
+        msg= lambda wildcards: "%s" % wildcards.filename
+    message: "PEAKS: compressing sorted.bdg {params.msg}"
+    log:_logfile
+    shell:
+        "gzip {input.bdg} 2>> {log}"
 
 #################################################################
 ########################======motif======########################
