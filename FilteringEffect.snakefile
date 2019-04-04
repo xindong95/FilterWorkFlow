@@ -79,27 +79,29 @@ loadRef(config)
 #NOTE: Template class allows for _ in the variable names, we want to DISALLOW
 #that for replicates
 #ref: http://stackoverflow.com/questions/2326757/string-templates-in-python-what-are-legal-characters
+
 class RepTemplate(Template):
     idpattern = r'[a-z][a-z0-9]*'
 
-#THIS helper fn is used in several of the modules peaks, ceas, frips
-#Instead of an expand, we need this fn to create the CORRECT input-list
-def _getRepInput(temp, suffix=""):
-    """generalized input fn to get the replicate files
-    CALLER passes in temp: a python string template that has the var runRep
-    e.g. analysis/ceas/$runRep/$runRep_DHS_stats.txt
-    Return: list of the string template filled with the correct runRep names
-    """
-    #print(temp)
-    s = RepTemplate(temp)
-    ls = []
-    for run in config['runs'].keys():
-        for rep in _reps[run]:
-            #GENERATE Run name: concat the run and rep name
-            runRep = "%s.%s" % (run, rep)
-            ls.append(s.substitute(runRep=runRep,))
-    #print(ls)
-    return ls
+# #THIS helper fn is used in several of the modules peaks, ceas, frips
+# #Instead of an expand, we need this fn to create the CORRECT input-list
+# def _getRepInput(temp, suffix=""):
+#     """generalized input fn to get the replicate files
+#     CALLER passes in temp: a python string template that has the var runRep
+#     e.g. analysis/ceas/$runRep/$runRep_DHS_stats.txt
+#     Return: list of the string template filled with the correct runRep names
+#     """
+#     #print(temp)
+#     s = RepTemplate(temp)
+#     ls = []
+#     for run in config['runs'].keys():
+#         for rep in _reps[run]:
+#             #GENERATE Run name: concat the run and rep name
+#             runRep = "%s.%s" % (run, rep)
+#             ls.append(s.substitute(runRep=runRep,))
+#     #print(ls)
+#     return ls
+
 
 def _getCutoffList(exper_type):
     if config['exper_type'] == 'ChIP-seq':
@@ -112,8 +114,12 @@ def _getCutoffList(exper_type):
 # TARGETS
 #------------------------------------------------------------------------------
 
+#################################################################
+#######################======targets======#######################
+#################################################################
+
+
 def all_targets(wildcards):
-    # _qdnaseq = config["cnv_analysis"]
     ls = []
     for sample in config['samples']:
         ls.append("analysis/%s/align/%s.sorted.bam" % (sample,sample))
@@ -146,7 +152,7 @@ def all_targets(wildcards):
             ls.append("analysis/%s/DHS/%s.%s/%s.%s_DHS_stats.txt" % (sample,sample,cutoff,sample,cutoff))
     return ls
 
-# include:
+
 def getFastq(wildcards):
     return config["samples"][wildcards.sample]
 
@@ -167,6 +173,11 @@ def _createEmptyMotif(motif_html):
     #Create an empty mdseqpos_index.html
     subprocess.call(['touch', motif_html])
 
+
+#################################################################
+#####################======parameters======######################
+#################################################################
+
 _threads = 8
 _logfile = "analysis/logfile.log"
 _macs_fdr="0.01"
@@ -178,6 +189,12 @@ _nPerPlot = 3
 _numPngs = math.ceil(len(config['samples'].keys())/float(_nPerPlot))
 _nPngs = [n+1 for n in range(_numPngs)]
 _minPeaks = 500
+
+
+#################################################################
+########################======start======########################
+#################################################################
+
 
 rule target_all:
     input:

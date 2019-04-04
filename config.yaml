@@ -13,6 +13,7 @@ aligner: 'bwa'
 # {"ChIP-seq", "ATAC-seq", "DNase-seq"}
 exper_type: 'ATAC-seq'
 
+
 #MOTIF CALLER: if you want to use MDSeqPos, set your aligner as 'mdseqpos'
 #OTHERWISE leave it as 'homer' (default)
 #
