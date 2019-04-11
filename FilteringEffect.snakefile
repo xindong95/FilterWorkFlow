@@ -122,34 +122,63 @@ def _getCutoffList(exper_type):
 def all_targets(wildcards):
     ls = []
     for sample in config['samples']:
+        #align
         ls.append("analysis/%s/align/%s.sorted.bam" % (sample,sample))
+        #distribution
         ls.append("analysis/%s/distribution/%s_fragment.txt" % (sample,sample))
         ls.append("analysis/%s/distribution/%s_distribution.png" % (sample,sample))
+        #filter
         ls.append("analysis/%s/filtered/%s.sub50.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub100.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub150.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub200.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.raw.sorted.bam" % (sample,sample))
-        for cutoff in _getCutoffList(config['exper_type']):
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.narrowPeak" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.bed" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_summits.bed" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_sorted_summits.bed" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_sorted_5k_summits.bed" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.xls" % (sample,sample,cutoff,sample,cutoff))
-            # ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.bdg" % (sample,sample,cutoff,sample,cutoff))
-            # ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.bdg" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.sorted.bdg.gz" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.sorted.bdg.gz" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/10FoldChange/%s.%s_peaks.narrowPeak" % (sample,sample,cutoff))
-            ls.append("analysis/%s/peaks/20FoldChange/%s.%s_peaks.narrowPeak" % (sample,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.bw" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.bw" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/motif/%s.%s/" % (sample,sample,cutoff))
-            ls.append("analysis/%s/motif/%s.%s/results" % (sample,sample,cutoff))
-            ls.append("analysis/%s/motif/%s.%s/results/homerResults.html" % (sample,sample,cutoff))
-            ls.append("analysis/%s/conservation/%s.%s/%s.%s_conserv.png" % (sample,sample,cutoff,sample,cutoff))
-            ls.append("analysis/%s/DHS/%s.%s/%s.%s_DHS_stats.txt" % (sample,sample,cutoff,sample,cutoff))
+        for sub_cutoff in _getCutoffList(config['exper_type']):
+            #call peaks
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.narrowPeak" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.bed" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_summits.bed" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_sorted_summits.bed" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_sorted_5k_summits.bed" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_peaks.xls" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            # ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.bdg" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            # ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.bdg" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.sorted.bdg.gz" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.sorted.bdg.gz" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/10FoldChange/%s.%s_peaks.narrowPeak" % (sample,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/20FoldChange/%s.%s_peaks.narrowPeak" % (sample,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_treat_pileup.bw" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.bw" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            #intersect
+            if sub_cutoff != 'raw':
+                ls.append("analysis/%s/peaks/leftRegion/%s.raw_vs_%s_peaks.bed" % (sample,sample,sub_cutoff))
+                ls.append("analysis/%s/peaks/rightRegion/%s.%s_vs_raw_peaks.bed" % (sample,sample,sub_cutoff))
+                ls.append("analysis/%s/peaks/unionRegion/%s.%s_peaks.bed" % (sample,sample,sub_cutoff))
+            #motif finding
+            ls.append("analysis/%s/motif/%s.%s/" % (sample,sample,sub_cutoff))
+            ls.append("analysis/%s/motif/%s.%s/results" % (sample,sample,sub_cutoff))
+            ls.append("analysis/%s/motif/%s.%s/results/homerResults.html" % (sample,sample,sub_cutoff))
+            if config['exper_type'] != 'ChIP-seq':
+                ls.append("analysis/%s/motif/%s.sub150_leftRegion/" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub150_leftRegion/results" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub150_leftRegion/results/homerResults.html" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub150_rightRegion/" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub150_rightRegion/results" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub150_rightRegion/results/homerResults.html" % (sample,sample))
+            else:
+                ls.append("analysis/%s/motif/%s.sub300_leftRegion/" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub300_leftRegion/results" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub300_leftRegion/results/homerResults.html" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub300_rightRegion/" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub300_rightRegion/results" % (sample,sample))
+                ls.append("analysis/%s/motif/%s.sub300_rightRegion/results/homerResults.html" % (sample,sample))
+            #conservation
+            ls.append("analysis/%s/conservation/%s.%s/%s.%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            if sub_cutoff != 'raw':
+                ls.append("analysis/%s/conservation/leftRegion/%s_%s/%s_%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+                ls.append("analysis/%s/conservation/rightRegion/%s_%s/%s_%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            #DHS
+            ls.append("analysis/%s/DHS/%s.%s/%s.%s_DHS_stats.txt" % (sample,sample,sub_cutoff,sample,sub_cutoff))
     return ls
 
 
@@ -487,6 +516,44 @@ rule gzip_bdg:
         "gzip {input.bdg} 2>> {log}"
 
 #################################################################
+######################======intersect======######################
+#################################################################
+
+rule get_left_peaks:
+    input:
+        raw="analysis/{sample}/peaks/{sample}.raw/{sample}.raw_peaks.narrowPeak",
+        filtered="analysis/{sample}/peaks/{sample}.sub{cutoff}/{sample}.sub{cutoff}_peaks.narrowPeak"
+    output:
+        "analysis/{sample}/peaks/leftRegion/{sample}.raw_vs_sub{cutoff}_peaks.bed"
+    message: "INTERSECT: get left region"
+    log:_logfile
+    shell:
+        "bedtools intersect -v -a {input.raw} -b {input.filtered} | cut -f1,2,3,4,9 | sort -r -n -k 5 > {output}"
+
+rule get_right_peaks:
+    input:
+        raw="analysis/{sample}/peaks/{sample}.raw/{sample}.raw_peaks.narrowPeak",
+        filtered="analysis/{sample}/peaks/{sample}.sub{cutoff}/{sample}.sub{cutoff}_peaks.narrowPeak"
+    output:
+        "analysis/{sample}/peaks/rightRegion/{sample}.sub{cutoff}_vs_raw_peaks.bed"
+    message: "INTERSECT: get left region"
+    log:_logfile
+    shell:
+        "bedtools intersect -v -a {input.filtered} -b {input.raw} | cut -f1,2,3,4,9 | sort -r -n -k 5 > {output}"
+
+rule get_union_peaks:
+    input:
+        raw="analysis/{sample}/peaks/{sample}.raw/{sample}.raw_peaks.narrowPeak",
+        filtered="analysis/{sample}/peaks/{sample}.sub{cutoff}/{sample}.sub{cutoff}_peaks.narrowPeak"
+    output:
+        "analysis/{sample}/peaks/unionRegion/{sample}.sub{cutoff}_peaks.bed"
+    message: "INTERSECT: get left region"
+    log:_logfile
+    shell:
+        "bedtools intersect -a {input.filtered} -b {input.raw} | cut -f1,2,3,4,9 | sort -r -n -k 5 > {output}"
+
+
+#################################################################
 ########################======motif======########################
 #################################################################
 
@@ -516,6 +583,113 @@ rule find_motif:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html)
 
+
+rule find_left_sub150_motif:
+    input:
+        bed="analysis/{sample}/peaks/leftRegion/{sample}.raw_vs_sub150_peaks.bed"
+    output:
+        path="analysis/{sample}/motif/{sample}.sub150_leftRegion/",
+        results="analysis/{sample}/motif/{sample}.sub150_leftRegion/results",
+        html="analysis/{sample}/motif/{sample}.sub150_leftRegion/results/homerResults.html",
+    params:
+        genome=config['motif_path'],
+        size=600,
+    message: "MOTIF: calling HOMER on top left"
+    threads:_threads
+    log: _logfile
+    run:
+        #check to see if _sorted_5k_summits.bed is valid
+        wc = str(subprocess.check_output(['wc', '-l', input.bed]))
+        #this returns a byte string--we need to eliminate the b' ... '
+        #and then convert the first elm to int
+        wc = int(wc[2:-1].split()[0])
+        if wc >= _minPeaks:
+            #PASS- run motif scan
+            shell("findMotifsGenome.pl {input} {params.genome} {output.results} -size {params.size} -p {threads} -mask -seqlogo -preparsedDir {output.results} >>{log} 2>&1")
+        else:
+            #FAIL - create empty outputs
+            _createEmptyMotif(output.html)
+
+rule find_right_sub150_motif:
+    input:
+        bed="analysis/{sample}/peaks/rightRegion/{sample}.sub150_vs_raw_peaks.bed"
+    output:
+        path="analysis/{sample}/motif/{sample}.sub150_rightRegion/",
+        results="analysis/{sample}/motif/{sample}.sub150_rightRegion/results",
+        html="analysis/{sample}/motif/{sample}.sub150_rightRegion/results/homerResults.html",
+    params:
+        genome=config['motif_path'],
+        size=600,
+    message: "MOTIF: calling HOMER on top left"
+    threads:_threads
+    log: _logfile
+    run:
+        #check to see if _sorted_5k_summits.bed is valid
+        wc = str(subprocess.check_output(['wc', '-l', input.bed]))
+        #this returns a byte string--we need to eliminate the b' ... '
+        #and then convert the first elm to int
+        wc = int(wc[2:-1].split()[0])
+        if wc >= _minPeaks:
+            #PASS- run motif scan
+            shell("findMotifsGenome.pl {input} {params.genome} {output.results} -size {params.size} -p {threads} -mask -seqlogo -preparsedDir {output.results} >>{log} 2>&1")
+        else:
+            #FAIL - create empty outputs
+            _createEmptyMotif(output.html)
+
+
+rule find_left_sub300_motif:
+    input:
+        bed="analysis/{sample}/peaks/leftRegion/{sample}.raw_vs_sub300_peaks.bed"
+    output:
+        path="analysis/{sample}/motif/{sample}.sub300_leftRegion/",
+        results="analysis/{sample}/motif/{sample}.sub300_leftRegion/results",
+        html="analysis/{sample}/motif/{sample}.sub300_leftRegion/results/homerResults.html",
+    params:
+        genome=config['motif_path'],
+        size=600,
+    message: "MOTIF: calling HOMER on top left"
+    threads:_threads
+    log: _logfile
+    run:
+        #check to see if _sorted_5k_summits.bed is valid
+        wc = str(subprocess.check_output(['wc', '-l', input.bed]))
+        #this returns a byte string--we need to eliminate the b' ... '
+        #and then convert the first elm to int
+        wc = int(wc[2:-1].split()[0])
+        if wc >= _minPeaks:
+            #PASS- run motif scan
+            shell("findMotifsGenome.pl {input} {params.genome} {output.results} -size {params.size} -p {threads} -mask -seqlogo -preparsedDir {output.results} >>{log} 2>&1")
+        else:
+            #FAIL - create empty outputs
+            _createEmptyMotif(output.html)
+
+rule find_right_sub300_motif:
+    input:
+        bed="analysis/{sample}/peaks/rightRegion/{sample}.sub300_vs_raw_peaks.bed"
+    output:
+        path="analysis/{sample}/motif/{sample}.sub300_rightRegion/",
+        results="analysis/{sample}/motif/{sample}.sub300_rightRegion/results",
+        html="analysis/{sample}/motif/{sample}.sub300_rightRegion/results/homerResults.html",
+    params:
+        genome=config['motif_path'],
+        size=600,
+    message: "MOTIF: calling HOMER on top left"
+    threads:_threads
+    log: _logfile
+    run:
+        #check to see if _sorted_5k_summits.bed is valid
+        wc = str(subprocess.check_output(['wc', '-l', input.bed]))
+        #this returns a byte string--we need to eliminate the b' ... '
+        #and then convert the first elm to int
+        wc = int(wc[2:-1].split()[0])
+        if wc >= _minPeaks:
+            #PASS- run motif scan
+            shell("findMotifsGenome.pl {input} {params.genome} {output.results} -size {params.size} -p {threads} -mask -seqlogo -preparsedDir {output.results} >>{log} 2>&1")
+        else:
+            #FAIL - create empty outputs
+            _createEmptyMotif(output.html)
+
+
 #################################################################
 ####################======conservation======#####################
 #################################################################
@@ -540,6 +714,45 @@ rule conservation:
     shell:
         "{params.pypath} {config[python2]} ./FilterWorkFlow/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/{wildcards.sample}/conservation/{wildcards.filename}/{wildcards.filename}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 
+rule left_conservation:
+    """generate conservation plots"""
+    input:
+        "analysis/{sample}/peaks/leftRegion/{sample}.raw_vs_sub{cutoff}_peaks.bed"
+    output:
+        png="analysis/{sample}/conservation/leftRegion/{sample}_sub{cutoff}/{sample}_sub{cutoff}_conserv.png",
+        thumb="analysis/{sample}/conservation/leftRegion/{sample}_sub{cutoff}/{sample}_sub{cutoff}_conserv_thumb.png",
+        r="analysis/{sample}/conservation/leftRegion/{sample}_sub{cutoff}/{sample}_sub{cutoff}_conserv.R",
+        score="analysis/{sample}/conservation/leftRegion/{sample}_sub{cutoff}/{sample}_sub{cutoff}_conserv.txt",
+    params:
+        db=config['conservation'],
+        width=4000,
+        #run = lambda wildcards: wildcards.run,
+        # run="{filename}",
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+    message: "CONSERVATION: calling conservation script"
+    log: _logfile
+    shell:
+        "{params.pypath} {config[python2]} ./FilterWorkFlow/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/{wildcards.sample}/conservation/leftRegion/{wildcards.sample}_sub{wildcards.cutoff}/{wildcards.sample}_sub{wildcards.cutoff}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
+
+rule right_conservation:
+    """generate conservation plots"""
+    input:
+        "analysis/{sample}/peaks/rightRegion/{sample}.sub{cutoff}_vs_raw_peaks.bed"
+    output:
+        png="analysis/{sample}/conservation/rightRegion/{sample}_sub{cutoff}/{sample}_sub{cutoff}_conserv.png",
+        thumb="analysis/{sample}/conservation/rightRegion/{sample}_sub{cutoff}/{sample}_sub{cutoff}_conserv_thumb.png",
+        r="analysis/{sample}/conservation/rightRegion/{sample}_sub{cutoff}/{sample}_sub{cutoff}_conserv.R",
+        score="analysis/{sample}/conservation/rightRegion/{sample}_sub{cutoff}/{sample}_sub{cutoff}_conserv.txt",
+    params:
+        db=config['conservation'],
+        width=4000,
+        #run = lambda wildcards: wildcards.run,
+        # run="{filename}",
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+    message: "CONSERVATION: calling conservation script"
+    log: _logfile
+    shell:
+        "{params.pypath} {config[python2]} ./FilterWorkFlow/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/{wildcards.sample}/conservation/rightRegion/{wildcards.sample}_sub{wildcards.cutoff}/{wildcards.sample}_sub{wildcards.cutoff}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 
 #################################################################
 #########################======DHS======#########################
