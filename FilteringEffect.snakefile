@@ -105,9 +105,9 @@ class RepTemplate(Template):
 
 def _getCutoffList(exper_type):
     if config['exper_type'] == 'ChIP-seq':
-        cutoff_list = ['raw','sub50','sub100','sub150','sub200','sub250','sub300','sub350','sub400']
+        cutoff_list = ['raw','sub050','sub100','sub150','sub200','sub250','sub300','sub350','sub400']
     else:
-        cutoff_list = ['raw','sub50','sub100','sub150','sub200']
+        cutoff_list = ['raw','sub050','sub100','sub150','sub200']
     return cutoff_list
 
 #------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ def all_targets(wildcards):
         ls.append("analysis/%s/distribution/%s_fragment.txt" % (sample,sample))
         ls.append("analysis/%s/distribution/%s_distribution.png" % (sample,sample))
         #filter
-        ls.append("analysis/%s/filtered/%s.sub50.sorted.bam" % (sample,sample))
+        ls.append("analysis/%s/filtered/%s.sub050.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub100.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub150.sorted.bam" % (sample,sample))
         ls.append("analysis/%s/filtered/%s.sub200.sorted.bam" % (sample,sample))
@@ -179,6 +179,9 @@ def all_targets(wildcards):
                 ls.append("analysis/%s/conservation/rightRegion/%s_%s/%s_%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
             #DHS
             ls.append("analysis/%s/DHS/%s.%s/%s.%s_DHS_stats.txt" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+            if sub_cutoff != 'raw':
+                ls.append('analysis/%s/DHS/leftRegion/%s.%s/%s.%s_DHS_stats.txt' % (sample,sample,sub_cutoff,sample,sub_cutoff))
+                ls.append('analysis/%s/DHS/rightRegion/%s.%s/%s.%s_DHS_stats.txt' % (sample,sample,sub_cutoff,sample,sub_cutoff))
     return ls
 
 
@@ -294,7 +297,7 @@ rule filter_bam_files_cutoff_50:
     input:
         "analysis/{sample}/align/{sample}.sorted.bam"
     output:
-        "analysis/{sample}/filtered/{sample}.sub50.sorted.bam"
+        "analysis/{sample}/filtered/{sample}.sub050.sorted.bam"
     message: "FILTERING: cutoff = 50"
     threads: _threads
     log: _logfile
@@ -772,6 +775,34 @@ rule DHS_intersectDHS:
     shell:
         "intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}"
 
+rule DHS_intersect_left_DHS:
+    """Intersect PEAKS with DHS regions"""
+    input:
+        "analysis/{sample}/peaks/leftRegion/{sample}.raw_vs_sub{cutoff}_peaks.bed"
+    output:
+        'analysis/{sample}/DHS/leftRegion/{sample}.sub{cutoff}/{sample}.sub{cutoff}_DHS_peaks.bed'
+    params:
+        #check for config['DHS'] defined, otherwise, use null
+        dhs=config['DHS'] if config['DHS'] else "/dev/null"
+    message: "DHS: intersect left PEAKS with DHS regions"
+    log: _logfile
+    shell:
+        "intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}"
+
+rule DHS_intersect_right_DHS:
+    """Intersect PEAKS with DHS regions"""
+    input:
+        "analysis/{sample}/peaks/rightRegion/{sample}.sub{cutoff}_vs_raw_peaks.bed"
+    output:
+        'analysis/{sample}/DHS/rightRegion/{sample}.sub{cutoff}/{sample}.sub{cutoff}_DHS_peaks.bed'
+    params:
+        #check for config['DHS'] defined, otherwise, use null
+        dhs=config['DHS'] if config['DHS'] else "/dev/null"
+    message: "DHS: intersect right PEAKS with DHS regions"
+    log: _logfile
+    shell:
+        "intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}"
+
 rule DHS_stat:
     """collect DHS stats"""
     input:
@@ -784,9 +815,29 @@ rule DHS_stat:
     shell:
         "wc -l {input.n} {input.dhs} > {output} 2>>{log}"
 
+rule DHS_left_stat:
+    """collect DHS stats"""
+    input:
+        n="analysis/{sample}/peaks/leftRegion/{sample}.raw_vs_sub{cutoff}_peaks.bed",
+        dhs='analysis/{sample}/DHS/leftRegion/{sample}.sub{cutoff}/{sample}.sub{cutoff}_DHS_peaks.bed'
+    output:
+        'analysis/{sample}/DHS/leftRegion/{sample}.sub{cutoff}/{sample}.sub{cutoff}_DHS_stats.txt'
+    message: "DHS: collecting stats"
+    log: _logfile
+    shell:
+        "wc -l {input.n} {input.dhs} > {output} 2>>{log}"
 
-
-
+rule DHS_right_stat:
+    """collect DHS stats"""
+    input:
+        n="analysis/{sample}/peaks/rightRegion/{sample}.sub{cutoff}_vs_raw_peaks.bed",
+        dhs='analysis/{sample}/DHS/rightRegion/{sample}.sub{cutoff}/{sample}.sub{cutoff}_DHS_peaks.bed'
+    output:
+        'analysis/{sample}/DHS/rightRegion/{sample}.sub{cutoff}/{sample}.sub{cutoff}_DHS_stats.txt'
+    message: "DHS: collecting stats"
+    log: _logfile
+    shell:
+        "wc -l {input.n} {input.dhs} > {output} 2>>{log}"
 
 
 
