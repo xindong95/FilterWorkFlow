@@ -1,4 +1,4 @@
-for dir in ./GSM*
+for dir in ./K562*
 do
     echo $dir
     wc -l ./${dir}/${dir}_peaks.narrowPeak >> ./peaks_summary.txt

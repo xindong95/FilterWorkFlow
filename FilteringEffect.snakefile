@@ -109,7 +109,7 @@ def _getCutoffList(exper_type):
         cutoff_list = ['raw','sub150','sub200','sub250','sub300','sub350','sub400']
     else:
         # cutoff_list = ['raw','sub050','sub100','sub150','sub200']
-        cutoff_list = ['raw','sub100','sub150','sub200']
+        cutoff_list = ['raw','sub100','sub150','sub200','above150']
     return cutoff_list
 
 #------------------------------------------------------------------------------
@@ -153,9 +153,10 @@ def all_targets(wildcards):
             ls.append("analysis/%s/peaks/%s.%s/%s.%s_control_lambda.bw" % (sample,sample,sub_cutoff,sample,sub_cutoff))
             #intersect
             if sub_cutoff != 'raw':
-                ls.append("analysis/%s/peaks/leftRegion/%s.raw_vs_%s_peaks.bed" % (sample,sample,sub_cutoff))
-                ls.append("analysis/%s/peaks/rightRegion/%s.%s_vs_raw_peaks.bed" % (sample,sample,sub_cutoff))
-                ls.append("analysis/%s/peaks/unionRegion/%s.%s_peaks.bed" % (sample,sample,sub_cutoff))
+                if sub_cutoff != 'above150':
+                    ls.append("analysis/%s/peaks/leftRegion/%s.raw_vs_%s_peaks.bed" % (sample,sample,sub_cutoff))
+                    ls.append("analysis/%s/peaks/rightRegion/%s.%s_vs_raw_peaks.bed" % (sample,sample,sub_cutoff))
+                    ls.append("analysis/%s/peaks/unionRegion/%s.%s_peaks.bed" % (sample,sample,sub_cutoff))
             #motif finding
             ls.append("analysis/%s/motif/%s.%s/" % (sample,sample,sub_cutoff))
             ls.append("analysis/%s/motif/%s.%s/results" % (sample,sample,sub_cutoff))
@@ -177,13 +178,16 @@ def all_targets(wildcards):
             #conservation
             ls.append("analysis/%s/conservation/%s.%s/%s.%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
             if sub_cutoff != 'raw':
-                ls.append("analysis/%s/conservation/leftRegion/%s_%s/%s_%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
-                ls.append("analysis/%s/conservation/rightRegion/%s_%s/%s_%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+                if sub_cutoff != 'above150':
+                    ls.append("analysis/%s/conservation/leftRegion/%s_%s/%s_%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
+                    ls.append("analysis/%s/conservation/rightRegion/%s_%s/%s_%s_conserv.png" % (sample,sample,sub_cutoff,sample,sub_cutoff))
             #DHS
             ls.append("analysis/%s/DHS/%s.%s/%s.%s_DHS_stats.txt" % (sample,sample,sub_cutoff,sample,sub_cutoff))
             if sub_cutoff != 'raw':
-                ls.append('analysis/%s/DHS/leftRegion/%s.%s/%s.%s_DHS_stats.txt' % (sample,sample,sub_cutoff,sample,sub_cutoff))
-                ls.append('analysis/%s/DHS/rightRegion/%s.%s/%s.%s_DHS_stats.txt' % (sample,sample,sub_cutoff,sample,sub_cutoff))
+                if sub_cutoff != 'above150':
+                    ls.append('analysis/%s/DHS/leftRegion/%s.%s/%s.%s_DHS_stats.txt' % (sample,sample,sub_cutoff,sample,sub_cutoff))
+                    ls.append('analysis/%s/DHS/rightRegion/%s.%s/%s.%s_DHS_stats.txt' % (sample,sample,sub_cutoff,sample,sub_cutoff))
+    # print(ls)
     return ls
 
 
@@ -337,6 +341,17 @@ rule filter_bam_files_cutoff_150:
     log: _logfile
     shell:
         "samtools view -h -@ {threads} {input} | awk '($9 <= 150 && $9 >= -150) || $1 ~ /^@/' | samtools view -bS -@ {threads} - > {output}"
+
+rule filter_bam_files_above_150:
+    input:
+        "analysis/{sample}/align/{sample}.sorted.bam"
+    output:
+        "analysis/{sample}/filtered/{sample}.above150.sorted.bam"
+    message: "FILTERING: cutoff >= 150"
+    threads: _threads
+    log: _logfile
+    shell:
+        "samtools view -h -@ {threads} {input} | awk '($9 >= 150 || $9 <= -150) || $1 ~ /^@/' | samtools view -bS -@ {threads} - > {output}"
 
 rule filter_bam_files_cutoff_200:
     input:
